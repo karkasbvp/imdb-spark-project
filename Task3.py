@@ -9,4 +9,3 @@ df.select(df.titleType, df.primaryTitle, df.originalTitle, df.runtimeMinutes) \
     .where(df.runtimeMinutes >120) \
     .show()
 
-#df[df['primaryName'].str.contains('F')].show()
