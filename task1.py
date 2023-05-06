@@ -1,7 +1,8 @@
-from read_write import write
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName('Karkasbvp').getOrCreate()
 
-def task1(df):
-    df.filter().withColomn
-
-    write(df, directory_to_write=write_imdb_task1)
-    pass
+df = spark.read.option("delimiter", "\t").csv('F:/2023_Python/imdb-spark-project/imdb-data/title.akas.tsv.gz', header=True)
+df.show()
+df.select(df.title, df.region, df.types, df.attributes) \
+     .where(df.region == 'UA') \
+     .show()
