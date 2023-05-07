@@ -17,8 +17,6 @@ df_episode.join(df_basics,'tconst').filter(f.col('episodeNumber') != '\\N') \
     .withColumn('title',f.split(df_basics['primaryTitle'], '/.').getItem(0)) \
     .orderBy('episodeNumber',ascending=False).show()
 
-#windowSpec = Window.orderBy('averageRating').partitionBy('decades')
-
 df_episode.withColumn('titleSum',f.count(f.col('episodeNumber')).over(windowSpec)).show()
 
-#withColumn('title', f.split(df_basics['primaryTitle'], '/.').getItem(0)).
+

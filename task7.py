@@ -15,5 +15,6 @@ windowSpec = Window.orderBy('averageRating').partitionBy('decades')
 New_table_join = df_ratings.join(df_basics,'tconst').select('originalTitle','averageRating','numVotes','startYear') \
     .withColumn('decades',f.floor(df_basics.startYear / 10)).orderBy('startYear',ascending=False) \
     .filter(f.col('startYear') != '\\N').limit(10)
-Sql_7  = New_table_join.withColumn('popular',f.mean(f.col('averageRating')).over(windowSpec))
-Sql_7.show()
+
+Query_7  = New_table_join.withColumn('popular',f.mean(f.col('averageRating')).over(windowSpec))
+Query_7.show()
