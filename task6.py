@@ -1,22 +1,24 @@
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import count
 from pyspark.sql.window import Window
-from pyspark.sql import functions as f
+
 
 spark = SparkSession.builder.appName('Karkasbvp').getOrCreate()
-print('title.episode')
-df_episode = spark.read.option("delimiter", "\t").csv('F:/2023_Python/imdb-spark-project/imdb-data/title.episode.tsv.gz', header=True)
-df_episode.show(1)
+
 print('title.basics')
 df_basics = spark.read.option("delimiter", "\t").csv('F:/2023_Python/imdb-spark-project/imdb-data/title.basics.tsv.gz', header=True)
 df_basics.show(1)
+df_episode = spark.read.option("delimiter", "\t").csv('F:/2023_Python/imdb-spark-project/imdb-data/title.episode.tsv.gz', header=True)
+df_episode.show(1)
 
-windowSpec = Window.orderBy('averageRating').partitionBy('seasonNumber')
+Query_6_episodeNumber = df_episode\
+.groupBy("tconst") \
+.agg(count("episodeNumber").alias("episodeNumber_1")) \
+.withColumnRenamed("count(episodeNumber)", "num_episodeNumber")
+Query_6_episodeNumber.show(5)
 
-df_episode.join(df_basics,'tconst').filter(f.col('episodeNumber') != '\\N') \
-    .select('primaryTitle','episodeNumber') \
-    .withColumn('title',f.split(df_basics['primaryTitle'], '/.').getItem(0)) \
-    .orderBy('episodeNumber',ascending=False).show()
-
-df_episode.withColumn('titleSum',f.count(f.col('episodeNumber')).over(windowSpec)).show()
+Query_6_episodeNumber_movies = Query_6_episodeNumber.join(df_basics, Query_6_episodeNumber.tconst == df_basics.tconst)
+cols = ["episodeNumber_1","primaryTitle","genres"]
+Query_6_episodeNumber_movies.select(cols).show(10)
 
 

@@ -1,21 +1,32 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.window import Window
-from pyspark.sql import functions as f
+from pyspark.sql.functions import *
 spark = SparkSession.builder.appName('Karkasbvp').getOrCreate()
-print('title.ratings')
-df_ratings = spark.read.option("delimiter", "\t").csv('F:/2023_Python/imdb-spark-project/imdb-data/title.ratings.tsv.gz', header=True)
-df_ratings.show(1)
+
 print('title.basics')
 df_basics = spark.read.option("delimiter", "\t").csv('F:/2023_Python/imdb-spark-project/imdb-data/title.basics.tsv.gz', header=True)
 df_basics.show(1)
+#Query_6 = df_basics.select('primaryTitle','genres').show()
+df_ratings = spark.read.option("delimiter", "\t").csv('F:/2023_Python/imdb-spark-project/imdb-data/title.ratings.tsv.gz', header=True)
+df_ratings.show(1)
 
-windowSpec = Window.orderBy('averageRating').partitionBy('genre')
+Query_8_most_popular = df_ratings\
+.groupBy("tconst")\
+.agg(count("numVotes"))\
+.withColumnRenamed("count(userId)", "num_ratings")
+Query_8_most_popular.show()
 
-New_table_join = df_ratings.join(df_basics,'tconst').select('originalTitle','averageRating','numVotes','startYear') \
-    .withColumn('genre',f.floor(df_basics.startYear / 10)).orderBy('startYear',ascending=False) \
-    .filter(f.col('startYear') != '\\N').limit(10)
-Query_8  = New_table_join.withColumn('popular',f.mean(f.col('averageRating')).over(windowSpec))
-Query_8.show()
+Query_8_most_popular_movies = Query_8_most_popular.join(df_basics, Query_8_most_popular.tconst == df_basics.tconst)
+Query_8_most_popular_movies.show(10, truncate=False)
 
+#   top_rated movies only showing top 10
+Query_8_top_rated = df_ratings\
+.groupBy("tconst")\
+.agg(avg(col("averageRating")))\
+.withColumnRenamed("avg(rating)", "avg_rating")\
+.sort(desc("avg(averageRating)"))
+Query_8_top_rated.show(10)
+#  showing movies with title
+Query_8_most_popular_movies = Query_8_top_rated.join(df_basics, Query_8_top_rated.tconst == df_basics.tconst)
 
-
+cols = ["primaryTitle","genres"]
+Query_8_most_popular_movies.select(cols).show(10)
